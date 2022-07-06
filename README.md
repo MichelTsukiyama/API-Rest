@@ -87,3 +87,20 @@ Como utilizar:
 > Obs. pode ser necessário desativar a verificação de certificado SSL no postman para que o mesmo funcione.
 
 ----
+
+# Conexão com MySql
+<br>
+
+1. Para fazer a conexão com com o Banco de Dados MySql é necessário instalar o pacote Pomelo.EntityFrameworkCore.MySql. Isso pode ser feito usando alguma extensão do NuGet ou pelo comando abaixo:
+
+        dotnet add .\RestWithASPNET\  package Pomelo.EntityFrameworkCore.MySql --version 5.0.4
+
+2. Criar a classe de contexto, Context > MySqlContext.cs;
+3. Inserir a ConnectionString no appsettings.json;
+4. Configurar a ConnectionString no Startup.cs;
+5. Dependendo do ambiente, pode ser necessário utilizar algumas Annotations na Entidade, como: 
+   - `[Table("nome_tabela")]` - faz o bind com o nome de uma tabela (em caso de nomes de tabelas diferentes);
+   - `[Column("atributo")]` - faz o bind com uma coluna na tabela (em caso de nomes de colunas diferentes);
+
+-----
+
