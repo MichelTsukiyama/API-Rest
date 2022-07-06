@@ -7,7 +7,8 @@ Requisitos:
 - SDK .Net 5.0;
 - MySql;
 - MySql Workbench;
-- Docker for Windows
+- Docker for Windows;
+- Postman;
 
 -------
 
@@ -59,4 +60,30 @@ Requisitos:
 
 ----
 
+# Criar a Model e Service
+<br>
 
+1. Criar o diretório Model e a entidade/classe com as propriedades(Person.cs);
+2. Criar o diretório Services e a Interface com os métodos da entidade criada na Model(IPersonService.cs);
+3. Criar a classe concreta que implementa os métodos da interface (PersonServiceImplementation.cs);
+4. Na classe Startap adicionar o serviço usando `services.AddScoped<Interface, Classe_que_a_implementa>();`
+5. Crie a controller PersonController e faça a injeção de dependência de IPersonService;
+
+-----
+
+# Postman
+<br>
+
+É um ferramenta capaz de fazer requisições com outros verbos http além do GET, muito utilizado para testar rotas de APIs;
+
+Como utilizar:
+
+1. Escolha o verbo/método http, por exemplo \[POST];
+2. Insira a rota, ex.: http://localhost:5000/api/person ;
+3. Dependendo do verbo utilizado, insira o as informações no header (se necessário);
+4. Dependendo do verbo utilizado, insira o as informações no body (se necessário/sempre verifique o formato utilizado JSON, XML...);
+
+
+> Obs. pode ser necessário desativar a verificação de certificado SSL no postman para que o mesmo funcione.
+
+----
