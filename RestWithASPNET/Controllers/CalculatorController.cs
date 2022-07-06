@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace RestWithASPNET.Controllers
 {
+    [ApiVersion("1.0")]
     [ApiController]
     [Route("[controller]")]
     public class CalculatorController : ControllerBase

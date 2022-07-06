@@ -104,3 +104,46 @@ Como utilizar:
 
 -----
 
+# Versionamento de EndPoints
+<br>
+
+O versionamento de EndPoints é importante para que a API continue funcionando para seus clientes mesmo após atualizações no código. Logo, aqueles que consumiam a versão inicial de sua aplicação(v1.0) podem continuar a utiliza-la sem a necessidade imediata de migrar para a nova versão (v2.0);
+
+Uma forma de versionar a aplicação seria usar as rotas:
+
+**Versão v1.0**
+
+`https://localhost:5001/api/v1.0/controller`
+
+**Versão v2.0**
+
+`https://localhost:5001/api/v2.0/controller`
+
+<br>
+
+Também é possível utilizar pacotes de versionamento como o `Microsoft.AspNetCore.Mvc.Versioning`, onde é possível fazer o versionamento por namespace, pela rota, etc.
+
+    dotnet add package Microsoft.AspNetCore.Mvc.Versioning --version 5.0.0
+
+Após instalar o pacote adicionar a configuração na classe Startup.cs
+
+```c#
+services.AddApiVersioning();
+```
+
+Para usar na Controller:
+
+```c#
+[ApiVersion( "1.0" )] //Esta annotation
+[ApiController]
+[Route( "[controller]/v{version:apiVersion}" )]//versão
+public class PeopleController : ControllerBase
+{
+    [HttpGet]
+    public IActionResult Get() => Ok( new[] { new Person() } );
+}
+```
+
+[Link do reposítório](https://github.com/dotnet/aspnet-api-versioning/wiki/New-Services-Quick-Start#aspnet-web-api-with-odata-v40)
+
+-----
