@@ -1,4 +1,4 @@
-# API-Rest
+# 1. API-Rest
 
 Construção de uma API-Rest baseada em um curso
 
@@ -7,40 +7,51 @@ Requisitos:
 - SDK .Net 5.0;
 - MySql;
 - MySql Workbench;
-- Docker for Windows;
 - Postman;
+
+> Esta branch não segue a parte em que há alteração na arquitetura do projeto
 
 -------
 
-# Sumário
+# 2. Sumário
 <br>
 
-
+- [1. API-Rest](#1-api-rest)
+- [2. Sumário](#2-sumário)
+- [3. Criar a Solution](#3-criar-a-solution)
+- [4. Criar o projeto](#4-criar-o-projeto)
+- [5. Adicionar o projeto na solution](#5-adicionar-o-projeto-na-solution)
+- [6. Adicionar o .gitignore](#6-adicionar-o-gitignore)
+- [7. Criar uma Controller(CalculadoraController)](#7-criar-uma-controllercalculadoracontroller)
+- [8. Criar a Model e Service](#8-criar-a-model-e-service)
+- [9. Postman](#9-postman)
+- [10. Conexão com MySql](#10-conexão-com-mysql)
+- [11. Versionamento de EndPoints](#11-versionamento-de-endpoints)
 
 --------
 
-# Criar a Solution
+# 3. Criar a Solution
 <br>
 
     dotnet new sln --name RestWithASPNET
 
 ---------
 
-# Criar o projeto
+# 4. Criar o projeto
 <br>
 
     dotnet new webapi -o RestWithASPNET -f net5.0
 
 -------
 
-# Adicionar o projeto na solution
+# 5. Adicionar o projeto na solution
 <br>
 
     dotnet sln add .\RestWithASPNET\RestWithASPNET.csproj
 
 ------
 
-# Adicionar o .gitignore
+# 6. Adicionar o .gitignore
 <br>
 
     dotnet new gitignore
@@ -48,7 +59,7 @@ Requisitos:
 
 ---------
 
-# Criar uma Controller(CalculadoraController)
+# 7. Criar uma Controller(CalculadoraController)
 <br>
 
 1. Deletar os arquivos WeatherForecast.cs e WeatherForecastController.cs;
@@ -60,7 +71,7 @@ Requisitos:
 
 ----
 
-# Criar a Model e Service
+# 8. Criar a Model e Service
 <br>
 
 1. Criar o diretório Model e a entidade/classe com as propriedades(Person.cs);
@@ -71,7 +82,7 @@ Requisitos:
 
 -----
 
-# Postman
+# 9. Postman
 <br>
 
 É um ferramenta capaz de fazer requisições com outros verbos http além do GET, muito utilizado para testar rotas de APIs;
@@ -88,7 +99,7 @@ Como utilizar:
 
 ----
 
-# Conexão com MySql
+# 10. Conexão com MySql
 <br>
 
 1. Para fazer a conexão com com o Banco de Dados MySql é necessário instalar o pacote Pomelo.EntityFrameworkCore.MySql. Isso pode ser feito usando alguma extensão do NuGet ou pelo comando abaixo:
@@ -104,7 +115,7 @@ Como utilizar:
 
 -----
 
-# Versionamento de EndPoints
+# 11. Versionamento de EndPoints
 <br>
 
 O versionamento de EndPoints é importante para que a API continue funcionando para seus clientes mesmo após atualizações no código. Logo, aqueles que consumiam a versão inicial de sua aplicação(v1.0) podem continuar a utiliza-la sem a necessidade imediata de migrar para a nova versão (v2.0);
