@@ -2,7 +2,7 @@ using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using RestWithASPNET.Model;
-using RestWithASPNET.Services;
+using RestWithASPNET.Business;
 
 namespace RestWithASPNET.Controllers
 {
@@ -12,24 +12,24 @@ namespace RestWithASPNET.Controllers
     public class PersonController : ControllerBase
     {
         private readonly ILogger<PersonController> _logger;
-        private readonly IPersonService _personService;
+        private readonly IPersonBusiness _personBusiness;
 
-        public PersonController(ILogger<PersonController> logger, IPersonService personService)
+        public PersonController(ILogger<PersonController> logger, IPersonBusiness personBusiness)
         {
             _logger = logger;
-            _personService = personService;
+            _personBusiness = personBusiness;
         }
 
         [HttpGet]
         public ActionResult Get()
         {
-            return Ok(_personService.FindAll());
+            return Ok(_personBusiness.FindAll());
         }
 
         [HttpGet("{id}")]
         public ActionResult Get(long id)
         {
-            var person = _personService.FindById(id);
+            var person = _personBusiness.FindById(id);
             if(person is null)
                 return NotFound();
 
@@ -42,7 +42,7 @@ namespace RestWithASPNET.Controllers
             if(person is null)
                 return BadRequest();
 
-            return Ok(_personService.Create(person));
+            return Ok(_personBusiness.Create(person));
         }
 
         [HttpPut]
@@ -51,13 +51,13 @@ namespace RestWithASPNET.Controllers
             if(person is null)
                 return BadRequest();
 
-            return Ok(_personService.Update(person));
+            return Ok(_personBusiness.Update(person));
         }
 
         [HttpDelete("{id}")]
         public ActionResult Delete(long id)
         {
-            _personService.Delete(id);          
+            _personBusiness.Delete(id);          
             return NoContent();
         }
     }
