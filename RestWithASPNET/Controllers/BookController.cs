@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using RestWithASPNET.Business;
+using RestWithASPNET.Data.VO;
 using RestWithASPNET.Model;
 
 namespace RestWithASPNET.Controllers
@@ -34,7 +35,7 @@ namespace RestWithASPNET.Controllers
         }
 
         [HttpPost]
-        public ActionResult Post([FromBody] Book book)
+        public ActionResult Post([FromBody] BookVO book)
         {
             if(book is null)
                 return BadRequest();
@@ -43,7 +44,7 @@ namespace RestWithASPNET.Controllers
         }
 
         [HttpPut]
-        public ActionResult Put([FromBody] Book book)
+        public ActionResult Put([FromBody] BookVO book)
         {
             if(book is null)
                 return BadRequest();

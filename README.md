@@ -1,4 +1,4 @@
-# API-Rest
+# 1. API-Rest
 
 Construção de uma API-Rest baseada em um curso
 
@@ -12,35 +12,49 @@ Requisitos:
 
 -------
 
-# Sumário
+# 2. Sumário
 <br>
 
-
+- [1. API-Rest](#1-api-rest)
+- [2. Sumário](#2-sumário)
+- [3. Criar a Solution](#3-criar-a-solution)
+- [4. Criar o projeto](#4-criar-o-projeto)
+- [5. Adicionar o projeto na solution](#5-adicionar-o-projeto-na-solution)
+- [6. Adicionar o .gitignore](#6-adicionar-o-gitignore)
+- [7. Criar uma Controller(CalculadoraController)](#7-criar-uma-controllercalculadoracontroller)
+- [8. Criar a Model e Service](#8-criar-a-model-e-service)
+- [9. Postman](#9-postman)
+- [10. Conexão com MySql](#10-conexão-com-mysql)
+- [11. Versionamento de EndPoints](#11-versionamento-de-endpoints)
+- [12. Alterações na arquitetura do projeto](#12-alterações-na-arquitetura-do-projeto)
+- [13. Migrations](#13-migrations)
+- [14. Generic Repository](#14-generic-repository)
+- [15. Padrão de Projeto VO(Value Object)](#15-padrão-de-projeto-vovalue-object)
 
 --------
 
-# Criar a Solution
+# 3. Criar a Solution
 <br>
 
     dotnet new sln --name RestWithASPNET
 
 ---------
 
-# Criar o projeto
+# 4. Criar o projeto
 <br>
 
     dotnet new webapi -o RestWithASPNET -f net5.0
 
 -------
 
-# Adicionar o projeto na solution
+# 5. Adicionar o projeto na solution
 <br>
 
     dotnet sln add .\RestWithASPNET\RestWithASPNET.csproj
 
 ------
 
-# Adicionar o .gitignore
+# 6. Adicionar o .gitignore
 <br>
 
     dotnet new gitignore
@@ -48,7 +62,7 @@ Requisitos:
 
 ---------
 
-# Criar uma Controller(CalculadoraController)
+# 7. Criar uma Controller(CalculadoraController)
 <br>
 
 1. Deletar os arquivos WeatherForecast.cs e WeatherForecastController.cs;
@@ -60,7 +74,7 @@ Requisitos:
 
 ----
 
-# Criar a Model e Service
+# 8. Criar a Model e Service
 <br>
 
 1. Criar o diretório Model e a entidade/classe com as propriedades(Person.cs);
@@ -71,7 +85,7 @@ Requisitos:
 
 -----
 
-# Postman
+# 9. Postman
 <br>
 
 É um ferramenta capaz de fazer requisições com outros verbos http além do GET, muito utilizado para testar rotas de APIs;
@@ -88,7 +102,7 @@ Como utilizar:
 
 ----
 
-# Conexão com MySql
+# 10. Conexão com MySql
 <br>
 
 1. Para fazer a conexão com com o Banco de Dados MySql é necessário instalar o pacote Pomelo.EntityFrameworkCore.MySql. Isso pode ser feito usando alguma extensão do NuGet ou pelo comando abaixo:
@@ -104,7 +118,7 @@ Como utilizar:
 
 -----
 
-# Versionamento de EndPoints
+# 11. Versionamento de EndPoints
 <br>
 
 O versionamento de EndPoints é importante para que a API continue funcionando para seus clientes mesmo após atualizações no código. Logo, aqueles que consumiam a versão inicial de sua aplicação(v1.0) podem continuar a utiliza-la sem a necessidade imediata de migrar para a nova versão (v2.0);
@@ -148,7 +162,7 @@ public class PeopleController : ControllerBase
 
 -----
 
-# Alterações na arquitetura do projeto
+# 12. Alterações na arquitetura do projeto
 <br>
 
 O projeto será separado em camadas, apesar do projeto ficar mais complexo ele divide as tarefas mantendo o código menor e mais compreensível;
@@ -175,7 +189,7 @@ Controller -> Método Http -> Camada Business -> Repository -> Context -> BD;
 
 ----
 
-# Migrations
+# 13. Migrations
 <br>
 
 As migrações são um forma de atualizar/criar o banco de dados automáticamente (sem criar as tabelas manualmente). Elas facilitam o desenvolvimento e tem como vantagem criar um histórico, e permitindo reverter para versões anteriores.
@@ -223,3 +237,60 @@ Os comandos usados para fazer migrações e atualizar as tabelas no banco de dad
 >Tentar alterar uma migração vai gerar um erro, uma vez que ela já foi migrada;
 
 ----
+
+# 14. Generic Repository
+<br>
+
+É muito semelhante ao DAO(Data Access Object), mas este visa apenas acesso ao banco de dados. O Generic Repository visa criar uma forma genérica para implementar os repositórios, que são muito semelhantes. Caso alguma entidade precise de um método diferente é possível fazer um método de extensão somente para atender as diferenças.
+
+No projeto, os passos para implementar o Generic Repository são:
+
+1. Criar o diretório Models -> Base;
+2. Nele, criar a classe BaseEntity;
+3. Criar o diretório Repository -> Generic;
+4. Nele, criar a Interface IRepository;
+5. Criar também a Classe Generic Repository;
+6. Fazer Injeção de dependência do contexto(MySql) na Generic Repository;
+7. Usar um DbSet<T> para que qualquer entidade passada seja alterada no context (Sem precisa inserir `public DbSet<Entidade> Entidades` para cada entidade no context);
+8. Adicionar no Startup.cs : `services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));` ;
+
+**Usar o Generic Repository no lugar BookRepository**
+
+1. Remover os arquivos IBookRepository e BookRepositoryImplementation;
+2. Remover o AddScopped de IbookRepository do Startup.cs;
+3. Na Model Book, extender Base Entity e remover a propriedade Id;
+4. Injetar o IRepository em BookBusinessImplementation no lugar de IBookRepository;
+
+> Perceba que com o repositório genérico não precisariamos das Interfaces e Classes I{Classe}Repository e {Classe}RepositoryImplementation.
+>
+>Caso fosse necessário uma implementação diferente seria possivel extender o GenericRepository;
+>
+>Não farei as alterações em Person, para visualizar como é sem o GenericRepository.
+
+----
+
+# 15. Padrão de Projeto VO(Value Object)
+<br>
+
+Também pode ser chamado de DTO(Data transfer object), é utilizado para não expor a estrutura de sua API. O que ocorre é que o client que consome sua API vai interagir com o VO/DTO que você expõe, este passa pela controller, camada de business, repository sendo convertido/adaptado para a Entidade e por último é feita a persistência dos dados;
+
+1. Criar os diretórios em RestWithASPNET:
+   - Data/Converter/Contract ;
+   - Data/Converter/Implementations ;
+   - Data/VO ;
+
+2. Em Contract, criar IParser;
+3. Em VO criar as classes PersonVO e BookVO;
+4. Em Implementations criar PersonConverter e Book Converter;
+5. Alterar o BusinessImplementation(Book e Person) para utilizar os VOs (no caso farei somente para o Book, pois não implementei o Generic Repository no Person);
+6. Ajustar IBookBusiness e IPersonBusiness(só foi feito no Book);
+7. Ajustar o Controller;
+
+
+> O VO/DTO pode ser diferente da Entidade;
+> 
+>Repare no Swagger que agora é exposto BookVO ao invés de Book;
+
+----
+
+
