@@ -30,6 +30,7 @@ Requisitos:
 - [13. Migrations](#13-migrations)
 - [14. Generic Repository](#14-generic-repository)
 - [15. Padrão de Projeto VO(Value Object)](#15-padrão-de-projeto-vovalue-object)
+- [16. Custom Serialization](#16-custom-serialization)
 
 --------
 
@@ -293,4 +294,36 @@ Também pode ser chamado de DTO(Data transfer object), é utilizado para não ex
 
 ----
 
+# 16. Custom Serialization
+<br>
+
+Custom Serialization permite alterar os nomes de atributos apresentados ao Client. Os nomes alterados devem ser utilizados no envio de requisições também.
+
+É possível fazer estas alterações com as seguintes notações:
+
+`[JsonPropertyName("outro_nome")]` , `[JsonIgnore]` ;
+
+Ex.:
+
+```c#
+    public class BookVO
+    {
+        public int Id { get; set; }
+        [JsonPropertyName("Autor")]
+        public string Author { get; set; }
+        [JsonIgnore]
+        public DateTime launchDate { get; set; }
+        public decimal Price { get; set; }
+        public string Title { get; set; }
+    }
+```
+<center>
+
+![custom-serialization](CustomSerialization.png)
+
+</center>
+
+> Obs. Em outras versões do SDK, como 3.1 ou anteriores é feito de outra maneira, que já foi deprecada;
+
+-----
 
