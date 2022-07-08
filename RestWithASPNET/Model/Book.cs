@@ -1,11 +1,13 @@
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using RestWithASPNET.Model.Base;
 
 namespace RestWithASPNET.Model
 {
-    public class Book
+    public class Book : BaseEntity
     {
-        public int Id { get; set; }
+        // Agora o Id vem de BaseEntity
+        // public int Id { get; set; }
         public string Author { get; set; }
         [Column("launch_date")]
         public DateTime launchDate { get; set; }

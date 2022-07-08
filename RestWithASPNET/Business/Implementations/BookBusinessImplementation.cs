@@ -1,15 +1,14 @@
 using System.Collections.Generic;
-using System.Linq;
 using RestWithASPNET.Model;
-using RestWithASPNET.Repository;
+using RestWithASPNET.Repository.Generic;
 
 namespace RestWithASPNET.Business.Implementations
 {
     public class BookBusinessImplementation : IBookBusiness
     {
-        public IBookRepository _repository;
+        public IRepository<Book> _repository;
 
-        public BookBusinessImplementation(IBookRepository repository)
+        public BookBusinessImplementation(IRepository<Book> repository)
         {
             _repository = repository;
         }

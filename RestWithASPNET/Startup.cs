@@ -14,7 +14,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using EvolveDb;
-
+using RestWithASPNET.Repository.Generic;
 
 namespace RestWithASPNET
 {
@@ -51,8 +51,9 @@ namespace RestWithASPNET
 
             services.AddScoped<IPersonBusiness, PersonBusinessImplementation>();
             services.AddScoped<IPersonRepository, PersonRepositoryImplementation>();
-            services.AddScoped<IBookRepository, BookRepositoryImplmentation>();
+            // services.AddScoped<IBookRepository, BookRepositoryImplmentation>();
             services.AddScoped<IBookBusiness, BookBusinessImplementation>();
+            services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
 
             services.AddSwaggerGen(c =>
             {
