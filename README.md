@@ -29,6 +29,7 @@ Requisitos:
 - [12. Alterações na arquitetura do projeto](#12-alterações-na-arquitetura-do-projeto)
 - [13. Migrations](#13-migrations)
 - [14. Generic Repository](#14-generic-repository)
+- [15. Padrão de Projeto VO(Value Object)](#15-padrão-de-projeto-vovalue-object)
 
 --------
 
@@ -267,3 +268,29 @@ No projeto, os passos para implementar o Generic Repository são:
 >Não farei as alterações em Person, para visualizar como é sem o GenericRepository.
 
 ----
+
+# 15. Padrão de Projeto VO(Value Object)
+<br>
+
+Também pode ser chamado de DTO(Data transfer object), é utilizado para não expor a estrutura de sua API. O que ocorre é que o client que consome sua API vai interagir com o VO/DTO que você expõe, este passa pela controller, camada de business, repository sendo convertido/adaptado para a Entidade e por último é feita a persistência dos dados;
+
+1. Criar os diretórios em RestWithASPNET:
+   - Data/Converter/Contract ;
+   - Data/Converter/Implementations ;
+   - Data/VO ;
+
+2. Em Contract, criar IParser;
+3. Em VO criar as classes PersonVO e BookVO;
+4. Em Implementations criar PersonConverter e Book Converter;
+5. Alterar o BusinessImplementation(Book e Person) para utilizar os VOs (no caso farei somente para o Book, pois não implementei o Generic Repository no Person);
+6. Ajustar IBookBusiness e IPersonBusiness(só foi feito no Book);
+7. Ajustar o Controller;
+
+
+> O VO/DTO pode ser diferente da Entidade;
+> 
+>Repare no Swagger que agora é exposto BookVO ao invés de Book;
+
+----
+
+
