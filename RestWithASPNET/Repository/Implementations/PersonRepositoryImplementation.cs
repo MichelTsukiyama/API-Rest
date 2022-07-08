@@ -1,19 +1,18 @@
-using System.Threading;
 using System;
 using System.Collections.Generic;
 using RestWithASPNET.Model;
 using RestWithASPNET.Context;
 using System.Linq;
 
-namespace RestWithASPNET.Services.Implementations
+namespace RestWithASPNET.Repository.Implementations
 {
-    public class PersonServiceImplementation : IPersonService
+    public class PersonRepositoryImplementation : IPersonRepository
     {
         private MySqlContext _context;
         //Era utilizado como contador;
         // private volatile int count;
 
-        public PersonServiceImplementation(MySqlContext context)
+        public PersonRepositoryImplementation(MySqlContext context)
         {
             _context = context;
         }
@@ -46,7 +45,7 @@ namespace RestWithASPNET.Services.Implementations
         public Person Update(Person person)
         {
             if(!Exists(person.Id))
-                return new Person();
+                return null;
 
             var result = _context.Persons.SingleOrDefault(p => p.Id.Equals(person.Id));
 
@@ -84,10 +83,12 @@ namespace RestWithASPNET.Services.Implementations
             }
         }
 
-        private bool Exists(long id)
+        public bool Exists(long id)
         {
             return _context.Persons.Any(p => p.Id.Equals(id));
         }
+
+       
         //Era utilizado para testar a aplicação sem um banco de dados
         // private Person MockPerson(int i)
         // {

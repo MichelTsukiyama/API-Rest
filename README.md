@@ -147,3 +147,79 @@ public class PeopleController : ControllerBase
 [Link do reposítório](https://github.com/dotnet/aspnet-api-versioning/wiki/New-Services-Quick-Start#aspnet-web-api-with-odata-v40)
 
 -----
+
+# Alterações na arquitetura do projeto
+<br>
+
+O projeto será separado em camadas, apesar do projeto ficar mais complexo ele divide as tarefas mantendo o código menor e mais compreensível;
+
+- Business fica responsável pelas regras de negócio (validações);
+- Repository fica responsável apenas pela persistência dos dados;
+  
+<br>
+
+**Trajeto da requisição até o banco de dados**
+
+Controller -> Método Http -> Camada Business -> Repository -> Context -> BD;
+
+<br>
+
+**Etapas**
+
+1. Renomear o diretório e todos os namespaces de Services para Business, incluindo as diretivas using;
+2. Copiar a pasta Business e colar em RestWithASPNET, na sequência renomear a cópia para Repository;
+3. Em Repository renomear IPersonService para IPersonRepository, e IPersonServiceImplementation para IPersonRepositoryImplementation, também alterando namespaces e referências;
+4. Em PersonController substituir todos os service por business também;
+5. Alterar a injeção de dependência em PersonBusinessImplementation para `private readonly IPersonrepository _repository` alterando também o construtor e os métodos quando necessário;
+6. Atualizar a classe Startup, adicionando AddScoped() tanto para a camada Business quanto para Repository; 
+
+----
+
+# Migrations
+<br>
+
+As migrações são um forma de atualizar/criar o banco de dados automáticamente (sem criar as tabelas manualmente). Elas facilitam o desenvolvimento e tem como vantagem criar um histórico, e permitindo reverter para versões anteriores.
+
+As migrações usam seu arquivo de contexto e as Classes em suas propriedades DbSet<> para criar as tabelas. Ex.:
+
+```c# 
+public DbSet<Person> Persons { get; set; }
+```
+
+Os comandos usados para fazer migrações e atualizar as tabelas no banco de dados são:
+
+    dotnet ef migrations add <nome_da_migração>
+    dotnet ef database update
+
+> Obs. É necessário ter o pacote `Microsoft.EntityFrameWorkCore.Tools` para usar o comando `dotnet ef` .
+
+<br>
+
+**Outras extensões úteis para trabalhar com migrações**
+
+- [Evolve](https://www.nuget.org/packages/Evolve/3.1.0-alpha7#usedby-body-tab) ;
+- [Serilog](https://www.nuget.org/packages/Serilog/2.11.1-dev-01397) ;
+- [Serilog.AspNetCore](https://www.nuget.org/packages/Serilog.AspNetCore/6.0.0-dev-00265) ;
+- [Serilog.Sinks.Console](https://www.nuget.org/packages/Serilog.Sinks.Console/4.0.2-dev-00890) ;
+- [MySql.Data](https://www.nuget.org/packages/MySql.Data) ;
+
+1. Após inserir todas as dependências acima, inserir `public IWebHostEnviroment Enviroment { get;}` na classe Startup.cs e seu construtor;
+2. Adicionar `Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();` no construtor da classe Startup.cs;
+3. Adicionar a condição `if(Environment.IsDevelopment())
+            {
+                MigrateDatabase(connectionString);
+            }` no ConfigureServices() na classe Startup.cs;
+
+4. Criar o método `MigrateDatabase()` na classe Startup.cs;
+5. Criar os diretórios db/dataset e db/migrations no diretório RestWithASPNET;
+6. Criar o arquivo `V1__Create_Table_Person.sql` em migrations, conforme documentação do Evolve;
+7. Criar o arquivo `V2__Populate_Table_Person.sql` em dataset, conforme documentação do Evolve;
+8. Basta rodar o projeto e o Evolve aplica automáticamente as migrações;
+
+> Obs. Ele cria uma tabela para controlar as alterações. 
+> 
+> Novas migrations devem ter seu nome alterado para V3__, V4__ ...
+>
+>Tentar alterar uma migração vai gerar um erro, uma vez que ela já foi migrada;
+
+----
