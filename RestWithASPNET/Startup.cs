@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -18,6 +19,7 @@ using EvolveDb;
 using RestWithASPNET.Repository.Generic;
 using RestWithASPNET.Hypermedia.Filters;
 using RestWithASPNET.Hypermedia.Enricher;
+using Microsoft.AspNetCore.Rewrite;
 
 namespace RestWithASPNET
 {
@@ -74,7 +76,19 @@ namespace RestWithASPNET
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "RestWithASPNET", Version = "v1" });
+                c.SwaggerDoc("v1", 
+                new OpenApiInfo 
+                { 
+                    Title = "RestWithASPNET", 
+                    Version = "v1",
+                    Description = "Description",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Name",
+                        Url = new Uri("https://seusite.com")
+                    }
+                    
+                });
             });
         }
 
@@ -87,6 +101,10 @@ namespace RestWithASPNET
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "RestWithASPNET v1"));
             }
+
+            var option = new RewriteOptions();
+            option.AddRedirect("^$", "swagger");
+            app.UseRewriter(option);
 
             app.UseHttpsRedirection();
 

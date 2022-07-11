@@ -33,6 +33,7 @@ Requisitos:
 - [16. Custom Serialization](#16-custom-serialization)
 - [17. Content Negociation](#17-content-negociation)
 - [18. HATEOAS (Hypermedia As the Engine Of Application State)](#18-hateoas-hypermedia-as-the-engine-of-application-state)
+- [Swagger (Open-Api)](#swagger-open-api)
 
 --------
 
@@ -393,6 +394,48 @@ HATEOAS são "hypermidias", quando alguém faz uma requisição a sua API ele de
 Agora o HATEOAS deve estar funcionando ao fazer requisições para BookController;
 
 -----
+
+# Swagger (Open-Api)
+<br>
+
+O Swagger(Open-API) se tornou um padrão de documentação de APIs, dependendo da versão do .Net ele é implementado automáticamente. Caso não esteja, é necessário importar pelo NuGet o `Swashbuckle.AspNetCore`.
+
+Para adicionar o Swagger é necessário inserir o código abaixo na Startup.cs:
+
+```c#
+    services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo { Title = "RestWithASPNET", Version = "v1" });
+    });
+```
+
+Você também pode adicionar outras informações além de Title e Version, como Contact por exemplo.
+
+Na sequência adicione ao Configure da Classe Startup:
+
+```c#
+app.UseSwagger();
+
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "RestWithASPNET v1");
+
+var option = new RewriteOptions();
+option.AddRedirect("^$", "swagger");
+app.UseRewriter(option);
+```
+
+É possível personalizar o status das requisições adicionando Annotations nos métodos das controllers:
+
+```c#
+        [HttpGet]
+        [ProducesResponseType((200), Type = typeof(List<BookVO>))]
+        [ProducesResponseType((204))]
+        [ProducesResponseType((400))]
+        [ProducesResponseType((401))]
+        [TypeFilter(typeof(HyperMediaFilter))]
+        public ActionResult Get() {/*código...*/ }
+```
+
+
 
 
 
