@@ -33,7 +33,9 @@ Requisitos:
 - [16. Custom Serialization](#16-custom-serialization)
 - [17. Content Negociation](#17-content-negociation)
 - [18. HATEOAS (Hypermedia As the Engine Of Application State)](#18-hateoas-hypermedia-as-the-engine-of-application-state)
-- [Swagger (Open-Api)](#swagger-open-api)
+- [19. Swagger (Open-Api)](#19-swagger-open-api)
+  - [19.1. Importar para o Postman](#191-importar-para-o-postman)
+- [20. CORS (Cross-origin resource sharing)](#20-cors-cross-origin-resource-sharing)
 
 --------
 
@@ -395,7 +397,7 @@ Agora o HATEOAS deve estar funcionando ao fazer requisições para BookControlle
 
 -----
 
-# Swagger (Open-Api)
+# 19. Swagger (Open-Api)
 <br>
 
 O Swagger(Open-API) se tornou um padrão de documentação de APIs, dependendo da versão do .Net ele é implementado automáticamente. Caso não esteja, é necessário importar pelo NuGet o `Swashbuckle.AspNetCore`.
@@ -434,6 +436,56 @@ app.UseRewriter(option);
         [TypeFilter(typeof(HyperMediaFilter))]
         public ActionResult Get() {/*código...*/ }
 ```
+
+---
+
+## 19.1. Importar para o Postman
+<br>
+
+1. No Swagger abra `/swagger/v1/swagger.json` e copia a url da página;
+2. No postman vá em Import, Link e cole o link. Ex.: https://localhost:5001/swagger/v1/swagger.json
+3. Clique em continue e depois em import;
+4. Ele irá importar todas as rotas da API, estará como {{baseUrl}} e {{version}};
+5. Vá em Enviroment Quick Look e clique em add;
+6. Em variable coloque `baseUrl` e initial value `https://localhost:5001`(colocar de acordo com sua url);
+7. Em variable coloque `version` e initial value `1`(colocar de acordo com sua versão da API);
+
+Agora todas as rotas estarão no Postman;
+
+----
+
+# 20. CORS (Cross-origin resource sharing)
+<br>
+
+O CORS é um mecanismo no cabeçalho que permite ao servidor indicar a origem das requisições. No entanto ao utilizar APIs em diferentes servidores você pode cair na "política de mesma origem"(Same origin policy) que impede  chamar o recurso de um site se forem de origens diferentes.
+
+A forma como o CORS é configurado pode aumentar a disponibilidade de sua API;
+
+Para configurar o CORS, vá na classe Startup e adicione antes  do `services.AddControllers`:
+
+```c#
+        services.AddCors(options => 
+                options.AddDefaultPolicy(builder => 
+                {
+                    builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+                }));
+```
+
+Após adicione o código abaixo no método Configure do Startup.cs:
+
+```c#
+app.UseCors();
+```
+
+>**Importante** - `app.UseCors();` deve estar depois de `app.UseHttpRedirection();` e `app.UseRouting`. E deve estar antes de `app.UseEndpoints();`
+
+----
+
+
+
+
 
 
 
