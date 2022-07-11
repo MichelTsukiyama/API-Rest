@@ -30,6 +30,10 @@ Requisitos:
 - [13. Migrations](#13-migrations)
 - [14. Generic Repository](#14-generic-repository)
 - [15. Padrão de Projeto VO(Value Object)](#15-padrão-de-projeto-vovalue-object)
+- [16. Custom Serialization](#16-custom-serialization)
+- [17. Content Negociation](#17-content-negociation)
+- [18. HATEOAS (Hypermedia As the Engine Of Application State)](#18-hateoas-hypermedia-as-the-engine-of-application-state)
+- [Swagger (Open-Api)](#swagger-open-api)
 
 --------
 
@@ -292,5 +296,147 @@ Também pode ser chamado de DTO(Data transfer object), é utilizado para não ex
 >Repare no Swagger que agora é exposto BookVO ao invés de Book;
 
 ----
+
+# 16. Custom Serialization
+<br>
+
+Custom Serialization permite alterar os nomes de atributos apresentados ao Client. Os nomes alterados devem ser utilizados no envio de requisições também.
+
+É possível fazer estas alterações com as seguintes notações:
+
+`[JsonPropertyName("outro_nome")]` , `[JsonIgnore]` ;
+
+Ex.:
+
+```c#
+    public class BookVO
+    {
+        public int Id { get; set; }
+        [JsonPropertyName("Autor")]
+        public string Author { get; set; }
+        [JsonIgnore]
+        public DateTime launchDate { get; set; }
+        public decimal Price { get; set; }
+        public string Title { get; set; }
+    }
+```
+<center>
+
+![custom-serialization](CustomSerialization.png)
+
+</center>
+
+> Obs. Em outras versões do SDK, como 3.1 ou anteriores é feito de outra maneira, que já foi deprecada;
+
+-----
+
+# 17. Content Negociation
+<br>
+
+Content Negociation serve para expor outros formatos de dados, por exemplo, até o momento só utilizamos JSON, mas existem outros formatos como o XML.
+
+Para isso é necessário usar o pacote `Microsoft.AspNetCore.Mvc.Formatters.Xml`:
+
+        dotnet add package Microsoft.AspNetCore.Mvc.Formatters.Xml --version 2.2.0
+
+Na sequência inserir a configuração abaixo na Classe Startup.cs, no ConfigureServices():
+
+```c#
+    services.AddMvc(options =>
+    {
+        options.RespectBrowserAcceptHeader = true;
+ 
+        options.FormatterMappings.SetMediaTypeMappingForFormat("xml", "application/xml");   
+        options.FormatterMappings.SetMediaTypeMappingForFormat("json", "application/json");   
+    }).AddXmlSerializerFormatters();
+```
+
+<center>
+
+![xml](xml.png)
+
+</center>
+
+------
+
+# 18. HATEOAS (Hypermedia As the Engine Of Application State)
+<br>
+
+HATEOAS são "hypermidias", quando alguém faz uma requisição a sua API ele devolve o resultado e junto os links com as ações possíveis para aquele resultado. Facilita a navegação entre recursos;
+
+1. Criar as Interfaces "IResponseEnricher" e "ISupportHyperMedia" no diretório Hypermedia/Abstract;
+2. Criar as Classes Seladas "HttpActionVerb", "RelationType" e "ResponseTypeFormat" em Hypermedia/Constants;
+3. Criar as Classes "HyperMediaFilter" e "HyperMediaFilterOptions" em Hypermedia/Filters;
+4. Criar a Classe "HyperMediaLink" e a Classe Abstrata "ContentResponseEnricher" em Hypermedia;
+5. Implementar a Interface ISupportsHyperMedia em BookVO;
+6. Criar a Classe "BookEnricher" em HyperMedia/Enricher;
+7. Ajustar a classe Startup com filterOptions:
+
+```c#
+            var filterOptions = new HyperMediaFilterOptions();
+            filterOptions.ContentResponseEnricherList.Add(new BookEnricher());
+
+            services.AddSingleton(filterOptions);
+```
+
+8. Adicionar o endpoint na classe Startup:
+
+```c#
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapControllerRoute("DefaultApi", "{controller=values}/{id?}");
+            });
+```
+
+9. Adicionar a annotation em todos os métodos da controller Book `[TypeFilter(typeof(HyperMediaFilter))]`, exceto no Delete retorna NoContent();
+
+Agora o HATEOAS deve estar funcionando ao fazer requisições para BookController;
+
+-----
+
+# Swagger (Open-Api)
+<br>
+
+O Swagger(Open-API) se tornou um padrão de documentação de APIs, dependendo da versão do .Net ele é implementado automáticamente. Caso não esteja, é necessário importar pelo NuGet o `Swashbuckle.AspNetCore`.
+
+Para adicionar o Swagger é necessário inserir o código abaixo na Startup.cs:
+
+```c#
+    services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo { Title = "RestWithASPNET", Version = "v1" });
+    });
+```
+
+Você também pode adicionar outras informações além de Title e Version, como Contact por exemplo.
+
+Na sequência adicione ao Configure da Classe Startup:
+
+```c#
+app.UseSwagger();
+
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "RestWithASPNET v1");
+
+var option = new RewriteOptions();
+option.AddRedirect("^$", "swagger");
+app.UseRewriter(option);
+```
+
+É possível personalizar o status das requisições adicionando Annotations nos métodos das controllers:
+
+```c#
+        [HttpGet]
+        [ProducesResponseType((200), Type = typeof(List<BookVO>))]
+        [ProducesResponseType((204))]
+        [ProducesResponseType((400))]
+        [ProducesResponseType((401))]
+        [TypeFilter(typeof(HyperMediaFilter))]
+        public ActionResult Get() {/*código...*/ }
+```
+
+
+
+
 
 

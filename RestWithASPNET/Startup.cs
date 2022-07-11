@@ -1,3 +1,5 @@
+using System.Net.Sockets;
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +17,9 @@ using System;
 using System.Collections.Generic;
 using EvolveDb;
 using RestWithASPNET.Repository.Generic;
+using RestWithASPNET.Hypermedia.Filters;
+using RestWithASPNET.Hypermedia.Enricher;
+using Microsoft.AspNetCore.Rewrite;
 
 namespace RestWithASPNET
 {
@@ -36,7 +41,6 @@ namespace RestWithASPNET
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddControllers();
 
             var connectionString = Configuration["MySqlConnection:MySqlConnectionString"];
@@ -46,6 +50,21 @@ namespace RestWithASPNET
             {
                 MigrateDatabase(connectionString);
             }
+
+            services.AddMvc(options =>
+            {
+                options.RespectBrowserAcceptHeader = true;
+
+                // options.FormatterMappings.SetMediaTypeMappingForFormat("xml", MediaTypeHeaderValue.Parse("application/xml"));
+                // options.FormatterMappings.SetMediaTypeMappingForFormat("json", MediaTypeHeaderValue.Parse("application/json"));   
+                options.FormatterMappings.SetMediaTypeMappingForFormat("xml", "application/xml");   
+                options.FormatterMappings.SetMediaTypeMappingForFormat("json", "application/json");   
+            }).AddXmlSerializerFormatters();
+
+            var filterOptions = new HyperMediaFilterOptions();
+            filterOptions.ContentResponseEnricherList.Add(new BookEnricher());
+
+            services.AddSingleton(filterOptions);
 
             services.AddApiVersioning();
 
@@ -57,7 +76,19 @@ namespace RestWithASPNET
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "RestWithASPNET", Version = "v1" });
+                c.SwaggerDoc("v1", 
+                new OpenApiInfo 
+                { 
+                    Title = "RestWithASPNET", 
+                    Version = "v1",
+                    Description = "Description",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Name",
+                        Url = new Uri("https://seusite.com")
+                    }
+                    
+                });
             });
         }
 
@@ -71,6 +102,10 @@ namespace RestWithASPNET
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "RestWithASPNET v1"));
             }
 
+            var option = new RewriteOptions();
+            option.AddRedirect("^$", "swagger");
+            app.UseRewriter(option);
+
             app.UseHttpsRedirection();
 
             app.UseRouting();
@@ -80,6 +115,7 @@ namespace RestWithASPNET
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapControllerRoute("DefaultApi", "{controller=values}/{id?}");
             });
         }
 
