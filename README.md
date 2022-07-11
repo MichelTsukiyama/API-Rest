@@ -31,6 +31,8 @@ Requisitos:
 - [14. Generic Repository](#14-generic-repository)
 - [15. Padrão de Projeto VO(Value Object)](#15-padrão-de-projeto-vovalue-object)
 - [16. Custom Serialization](#16-custom-serialization)
+- [17. Content Negociation](#17-content-negociation)
+- [18. HATEOAS (Hypermedia As the Engine Of Application State)](#18-hateoas-hypermedia-as-the-engine-of-application-state)
 
 --------
 
@@ -326,4 +328,72 @@ Ex.:
 > Obs. Em outras versões do SDK, como 3.1 ou anteriores é feito de outra maneira, que já foi deprecada;
 
 -----
+
+# 17. Content Negociation
+<br>
+
+Content Negociation serve para expor outros formatos de dados, por exemplo, até o momento só utilizamos JSON, mas existem outros formatos como o XML.
+
+Para isso é necessário usar o pacote `Microsoft.AspNetCore.Mvc.Formatters.Xml`:
+
+        dotnet add package Microsoft.AspNetCore.Mvc.Formatters.Xml --version 2.2.0
+
+Na sequência inserir a configuração abaixo na Classe Startup.cs, no ConfigureServices():
+
+```c#
+    services.AddMvc(options =>
+    {
+        options.RespectBrowserAcceptHeader = true;
+ 
+        options.FormatterMappings.SetMediaTypeMappingForFormat("xml", "application/xml");   
+        options.FormatterMappings.SetMediaTypeMappingForFormat("json", "application/json");   
+    }).AddXmlSerializerFormatters();
+```
+
+<center>
+
+![xml](xml.png)
+
+</center>
+
+------
+
+# 18. HATEOAS (Hypermedia As the Engine Of Application State)
+<br>
+
+HATEOAS são "hypermidias", quando alguém faz uma requisição a sua API ele devolve o resultado e junto os links com as ações possíveis para aquele resultado. Facilita a navegação entre recursos;
+
+1. Criar as Interfaces "IResponseEnricher" e "ISupportHyperMedia" no diretório Hypermedia/Abstract;
+2. Criar as Classes Seladas "HttpActionVerb", "RelationType" e "ResponseTypeFormat" em Hypermedia/Constants;
+3. Criar as Classes "HyperMediaFilter" e "HyperMediaFilterOptions" em Hypermedia/Filters;
+4. Criar a Classe "HyperMediaLink" e a Classe Abstrata "ContentResponseEnricher" em Hypermedia;
+5. Implementar a Interface ISupportsHyperMedia em BookVO;
+6. Criar a Classe "BookEnricher" em HyperMedia/Enricher;
+7. Ajustar a classe Startup com filterOptions:
+
+```c#
+            var filterOptions = new HyperMediaFilterOptions();
+            filterOptions.ContentResponseEnricherList.Add(new BookEnricher());
+
+            services.AddSingleton(filterOptions);
+```
+
+8. Adicionar o endpoint na classe Startup:
+
+```c#
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapControllerRoute("DefaultApi", "{controller=values}/{id?}");
+            });
+```
+
+9. Adicionar a annotation em todos os métodos da controller Book `[TypeFilter(typeof(HyperMediaFilter))]`, exceto no Delete retorna NoContent();
+
+Agora o HATEOAS deve estar funcionando ao fazer requisições para BookController;
+
+-----
+
+
+
 
