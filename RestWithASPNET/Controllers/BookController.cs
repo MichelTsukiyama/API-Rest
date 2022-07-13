@@ -74,6 +74,16 @@ namespace RestWithASPNET.Controllers
             return Ok(_bookBusiness.Update(book));
         }
 
+        [HttpPatch("{id}")]
+        [ProducesResponseType((200), Type = typeof(BookVO))]
+        [ProducesResponseType((400))]
+        [ProducesResponseType((401))]
+        [TypeFilter(typeof(HyperMediaFilter))]
+        public ActionResult Patch(long id)
+        {
+            return Ok(_bookBusiness.Disabled(id));
+        }
+
         [HttpDelete("{id}")]
         [ProducesResponseType((204))]
         [ProducesResponseType((400))]

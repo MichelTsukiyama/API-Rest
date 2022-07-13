@@ -123,6 +123,7 @@ namespace RestWithASPNET
 
             services.AddTransient<ITokenServices, TokenService>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IBookRepository, BookRepository>();
 
             services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
 
@@ -140,6 +141,29 @@ namespace RestWithASPNET
                         Url = new Uri("https://seusite.com")
                     }
                     
+                });
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please, insert token",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "bearer"
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[]{}
+                    }
                 });
             });
         }

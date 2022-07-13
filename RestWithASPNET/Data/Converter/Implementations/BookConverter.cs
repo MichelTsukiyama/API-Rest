@@ -18,7 +18,8 @@ namespace RestWithASPNET.Data.Converter.Implementations
                 Author = origin.Author,
                 launchDate = origin.launchDate,
                 Price = origin.Price,
-                Title = origin.Title
+                Title = origin.Title,
+                Enabled = origin.Enabled
             };
         }
 
@@ -39,7 +40,8 @@ namespace RestWithASPNET.Data.Converter.Implementations
                 Author = origin.Author,
                 launchDate = origin.launchDate,
                 Price = origin.Price,
-                Title = origin.Title
+                Title = origin.Title,
+                Enabled = origin.Enabled
             };
         }
 

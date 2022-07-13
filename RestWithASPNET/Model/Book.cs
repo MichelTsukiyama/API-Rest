@@ -13,5 +13,6 @@ namespace RestWithASPNET.Model
         public DateTime launchDate { get; set; }
         public decimal Price { get; set; }
         public string Title { get; set; }
+        public bool Enabled { get; set; }
     }
 }

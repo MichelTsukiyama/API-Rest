@@ -35,8 +35,10 @@ Requisitos:
 - [18. HATEOAS (Hypermedia As the Engine Of Application State)](#18-hateoas-hypermedia-as-the-engine-of-application-state)
 - [19. Swagger (Open-Api)](#19-swagger-open-api)
   - [19.1. Importar para o Postman](#191-importar-para-o-postman)
+  - [Inserir Botão de Autenticação no Swagger](#inserir-botão-de-autenticação-no-swagger)
 - [20. CORS (Cross-origin resource sharing)](#20-cors-cross-origin-resource-sharing)
 - [Autenticação](#autenticação)
+- [Verbo Patch](#verbo-patch)
 
 --------
 
@@ -455,6 +457,40 @@ Agora todas as rotas estarão no Postman;
 
 ----
 
+## Inserir Botão de Autenticação no Swagger
+<br>
+
+Adicione o código abaixo no `services.AddSwaggerGen()`, na classe Startup.cs para adicionar um botão de autenticação no Swagger. Assim é possível colocar o token e se autenticar para utilizar recursos que precisam de autenticação.
+
+
+```c#
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please, insert token",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "bearer"
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[]{}
+                    }
+                });
+```
+
+----
+
 # 20. CORS (Cross-origin resource sharing)
 <br>
 
@@ -562,7 +598,16 @@ services.AddAuthorization(auth =>
 
 ----
 
+# Verbo Patch
+<br>
 
+O verbo Patch é utilizado para consumir menos recursos de banda, visto que ele não precisa trafegar todo o objeto.
+
+Nele é possível alterar apenas parte do objeto.
+
+Aqui foi implementado o atributo Enabled em Book.cs e utiliza-se o Patch para altera-lo para false através do método `Disabled()` criado em IBookRepository;
+
+----
     
 
 

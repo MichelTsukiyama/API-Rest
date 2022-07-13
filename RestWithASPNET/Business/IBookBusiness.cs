@@ -11,5 +11,6 @@ namespace RestWithASPNET.Business
         BookVO Create(BookVO book);
         BookVO Update(BookVO book);
         void Delete(int id);
+        BookVO Disabled(long id);
     }
 }
