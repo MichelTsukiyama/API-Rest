@@ -36,6 +36,7 @@ Requisitos:
 - [19. Swagger (Open-Api)](#19-swagger-open-api)
   - [19.1. Importar para o Postman](#191-importar-para-o-postman)
 - [20. CORS (Cross-origin resource sharing)](#20-cors-cross-origin-resource-sharing)
+- [Autenticação](#autenticação)
 
 --------
 
@@ -482,6 +483,88 @@ app.UseCors();
 >**Importante** - `app.UseCors();` deve estar depois de `app.UseHttpRedirection();` e `app.UseRouting`. E deve estar antes de `app.UseEndpoints();`
 
 ----
+
+# Autenticação
+<br>
+
+Autenticação é a etapa que valida credenciais de um usuário para que API saiba se ele é cadastrado e quais endpoints pode acessar.
+
+Para utilizar o token JWT é necessário ter a seguinte dependência: [`Microsoft.AspNetCore.Authentication.JwtBearer`](https://www.nuget.org/packages/Microsoft.AspNetCore.Authentication.JwtBearer/7.0.0-preview.5.22303.8);
+
+1. Nesta etapa serão adicionadas 2 migrações, para criar e popular as tabelas de usuários para autenticação;
+2. Criar a Model User;
+3. Adicionar User no MySqlContext;
+4. Criar IUserRepository e UserRepository em Repository;
+5. Criar UserVO em Data/VO;
+6. Criar a classe TokenConfiguration.cs em Configuration;
+7. Adicionar as configurações do Token no appsettings.json:
+
+```json
+{
+"TokenConfigurations":{
+    "Audience": "ExampleAudience",
+    "Issuer": "ExampleIssuer",
+    "Secret": "Example_For_Your_Secret!",
+    "Minutes": 30,
+    "DaysToExpiry": 7
+  }
+}
+```
+8. Criar a Interface ITokenService em Services;
+9. Criar a classe concreta TokenService em Service/Implementations;
+10. Criar TokenVO em Data/VO;
+11. Criar ILoginBusiness e LoginBusinessImplementation;
+12. Injetar as dependências na Classe Startup (ITokenService, IUserRepository, ILoginBusiness );
+13. Adicionar as configurações na classe startup no início do ConfigureServices:
+
+```c#
+ var tokenConfigurations = new TokenConfigurations();
+
+new ConfigureFromConfigurationOptions<TokenConfigurations> 
+    (Configuration.GetSection("TokenConfigurations"))
+    .Configure(tokenConfigurations);
+
+services.AddSingleton(tokenConfigurations);
+
+services.AddAuthentication(options => 
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true, 
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = tokenConfigurations.Issuer,
+        ValidAudience = tokenConfigurations.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenConfigurations.Secret))
+
+    };
+});
+
+services.AddAuthorization(auth =>
+{
+    auth.AddPolicy("Bearer", new AuthorizationPolicyBuilder()
+    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+    .RequireAuthenticatedUser().Build());
+});
+```
+
+14. Criar o Controller AuthController;
+15. Adicionar a Annotatation `[Authorize("Bearer")]` em BookController para exigir autenticação;
+
+> Refresh Token serve para se autenticar novamente sem enviar os dados de usuário e senha, para evitar ficar trafegando estas informações;
+>
+> Revoke Token é para revogar um token;
+
+----
+
+
+    
+
 
 
 
