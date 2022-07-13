@@ -13,6 +13,7 @@ namespace RestWithASPNET.Data.VO
         public DateTime launchDate { get; set; }
         public decimal Price { get; set; }
         public string Title { get; set; }
+        public bool Enabled { get; set; }
         public List<HyperMediaLink> Links { get; set; } = new List<HyperMediaLink>();
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RestWithASPNET.Business;
 using RestWithASPNET.Data.VO;
@@ -9,6 +10,7 @@ namespace RestWithASPNET.Controllers
 {
     [ApiController]
     [ApiVersion("1.0")]
+    [Authorize("Bearer")]
     [Route("api/[controller]/v{version:apiVersion}")]
     public class BookController : ControllerBase
     {
@@ -70,6 +72,16 @@ namespace RestWithASPNET.Controllers
                 return BadRequest();
 
             return Ok(_bookBusiness.Update(book));
+        }
+
+        [HttpPatch("{id}")]
+        [ProducesResponseType((200), Type = typeof(BookVO))]
+        [ProducesResponseType((400))]
+        [ProducesResponseType((401))]
+        [TypeFilter(typeof(HyperMediaFilter))]
+        public ActionResult Patch(long id)
+        {
+            return Ok(_bookBusiness.Disabled(id));
         }
 
         [HttpDelete("{id}")]

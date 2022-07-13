@@ -1,3 +1,4 @@
+using System.Text;
 using System.Net.Sockets;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Builder;
@@ -20,6 +21,13 @@ using RestWithASPNET.Repository.Generic;
 using RestWithASPNET.Hypermedia.Filters;
 using RestWithASPNET.Hypermedia.Enricher;
 using Microsoft.AspNetCore.Rewrite;
+using RestWithASPNET.Services.Implementations;
+using RestWithASPNET.Services;
+using RestWithASPNET.Configuration;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RestWithASPNET
 {
@@ -41,6 +49,48 @@ namespace RestWithASPNET
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var tokenConfigurations = new TokenConfigurations();
+
+            new ConfigureFromConfigurationOptions<TokenConfigurations> 
+                (Configuration.GetSection("TokenConfigurations"))
+                .Configure(tokenConfigurations);
+
+            services.AddSingleton(tokenConfigurations);
+
+            services.AddAuthentication(options => 
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true, 
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = tokenConfigurations.Issuer,
+                    ValidAudience = tokenConfigurations.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenConfigurations.Secret))
+
+                };
+            });
+
+            services.AddAuthorization(auth =>
+            {
+                auth.AddPolicy("Bearer", new AuthorizationPolicyBuilder()
+                .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                .RequireAuthenticatedUser().Build());
+            });
+
+            services.AddCors(options => 
+                options.AddDefaultPolicy(builder => 
+                {
+                    builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+                }));
+
             services.AddControllers();
 
             var connectionString = Configuration["MySqlConnection:MySqlConnectionString"];
@@ -53,10 +103,7 @@ namespace RestWithASPNET
 
             services.AddMvc(options =>
             {
-                options.RespectBrowserAcceptHeader = true;
-
-                // options.FormatterMappings.SetMediaTypeMappingForFormat("xml", MediaTypeHeaderValue.Parse("application/xml"));
-                // options.FormatterMappings.SetMediaTypeMappingForFormat("json", MediaTypeHeaderValue.Parse("application/json"));   
+                options.RespectBrowserAcceptHeader = true;   
                 options.FormatterMappings.SetMediaTypeMappingForFormat("xml", "application/xml");   
                 options.FormatterMappings.SetMediaTypeMappingForFormat("json", "application/json");   
             }).AddXmlSerializerFormatters();
@@ -72,6 +119,12 @@ namespace RestWithASPNET
             services.AddScoped<IPersonRepository, PersonRepositoryImplementation>();
             // services.AddScoped<IBookRepository, BookRepositoryImplmentation>();
             services.AddScoped<IBookBusiness, BookBusinessImplementation>();
+            services.AddScoped<ILoginBusiness, LoginBusinessImplementation>();
+
+            services.AddTransient<ITokenServices, TokenService>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IBookRepository, BookRepository>();
+
             services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
 
             services.AddSwaggerGen(c =>
@@ -88,6 +141,29 @@ namespace RestWithASPNET
                         Url = new Uri("https://seusite.com")
                     }
                     
+                });
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please, insert token",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "bearer"
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[]{}
+                    }
                 });
             });
         }
@@ -109,6 +185,8 @@ namespace RestWithASPNET
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors();
 
             app.UseAuthorization();
 

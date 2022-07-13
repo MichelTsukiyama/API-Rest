@@ -33,7 +33,12 @@ Requisitos:
 - [16. Custom Serialization](#16-custom-serialization)
 - [17. Content Negociation](#17-content-negociation)
 - [18. HATEOAS (Hypermedia As the Engine Of Application State)](#18-hateoas-hypermedia-as-the-engine-of-application-state)
-- [Swagger (Open-Api)](#swagger-open-api)
+- [19. Swagger (Open-Api)](#19-swagger-open-api)
+  - [19.1. Importar para o Postman](#191-importar-para-o-postman)
+  - [Inserir Botão de Autenticação no Swagger](#inserir-botão-de-autenticação-no-swagger)
+- [20. CORS (Cross-origin resource sharing)](#20-cors-cross-origin-resource-sharing)
+- [Autenticação](#autenticação)
+- [Verbo Patch](#verbo-patch)
 
 --------
 
@@ -395,7 +400,7 @@ Agora o HATEOAS deve estar funcionando ao fazer requisições para BookControlle
 
 -----
 
-# Swagger (Open-Api)
+# 19. Swagger (Open-Api)
 <br>
 
 O Swagger(Open-API) se tornou um padrão de documentação de APIs, dependendo da versão do .Net ele é implementado automáticamente. Caso não esteja, é necessário importar pelo NuGet o `Swashbuckle.AspNetCore`.
@@ -434,6 +439,181 @@ app.UseRewriter(option);
         [TypeFilter(typeof(HyperMediaFilter))]
         public ActionResult Get() {/*código...*/ }
 ```
+
+---
+
+## 19.1. Importar para o Postman
+<br>
+
+1. No Swagger abra `/swagger/v1/swagger.json` e copia a url da página;
+2. No postman vá em Import, Link e cole o link. Ex.: https://localhost:5001/swagger/v1/swagger.json
+3. Clique em continue e depois em import;
+4. Ele irá importar todas as rotas da API, estará como {{baseUrl}} e {{version}};
+5. Vá em Enviroment Quick Look e clique em add;
+6. Em variable coloque `baseUrl` e initial value `https://localhost:5001`(colocar de acordo com sua url);
+7. Em variable coloque `version` e initial value `1`(colocar de acordo com sua versão da API);
+
+Agora todas as rotas estarão no Postman;
+
+----
+
+## Inserir Botão de Autenticação no Swagger
+<br>
+
+Adicione o código abaixo no `services.AddSwaggerGen()`, na classe Startup.cs para adicionar um botão de autenticação no Swagger. Assim é possível colocar o token e se autenticar para utilizar recursos que precisam de autenticação.
+
+
+```c#
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please, insert token",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "bearer"
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[]{}
+                    }
+                });
+```
+
+----
+
+# 20. CORS (Cross-origin resource sharing)
+<br>
+
+O CORS é um mecanismo no cabeçalho que permite ao servidor indicar a origem das requisições. No entanto ao utilizar APIs em diferentes servidores você pode cair na "política de mesma origem"(Same origin policy) que impede  chamar o recurso de um site se forem de origens diferentes.
+
+A forma como o CORS é configurado pode aumentar a disponibilidade de sua API;
+
+Para configurar o CORS, vá na classe Startup e adicione antes  do `services.AddControllers`:
+
+```c#
+        services.AddCors(options => 
+                options.AddDefaultPolicy(builder => 
+                {
+                    builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+                }));
+```
+
+Após adicione o código abaixo no método Configure do Startup.cs:
+
+```c#
+app.UseCors();
+```
+
+>**Importante** - `app.UseCors();` deve estar depois de `app.UseHttpRedirection();` e `app.UseRouting`. E deve estar antes de `app.UseEndpoints();`
+
+----
+
+# Autenticação
+<br>
+
+Autenticação é a etapa que valida credenciais de um usuário para que API saiba se ele é cadastrado e quais endpoints pode acessar.
+
+Para utilizar o token JWT é necessário ter a seguinte dependência: [`Microsoft.AspNetCore.Authentication.JwtBearer`](https://www.nuget.org/packages/Microsoft.AspNetCore.Authentication.JwtBearer/7.0.0-preview.5.22303.8);
+
+1. Nesta etapa serão adicionadas 2 migrações, para criar e popular as tabelas de usuários para autenticação;
+2. Criar a Model User;
+3. Adicionar User no MySqlContext;
+4. Criar IUserRepository e UserRepository em Repository;
+5. Criar UserVO em Data/VO;
+6. Criar a classe TokenConfiguration.cs em Configuration;
+7. Adicionar as configurações do Token no appsettings.json:
+
+```json
+{
+"TokenConfigurations":{
+    "Audience": "ExampleAudience",
+    "Issuer": "ExampleIssuer",
+    "Secret": "Example_For_Your_Secret!",
+    "Minutes": 30,
+    "DaysToExpiry": 7
+  }
+}
+```
+8. Criar a Interface ITokenService em Services;
+9. Criar a classe concreta TokenService em Service/Implementations;
+10. Criar TokenVO em Data/VO;
+11. Criar ILoginBusiness e LoginBusinessImplementation;
+12. Injetar as dependências na Classe Startup (ITokenService, IUserRepository, ILoginBusiness );
+13. Adicionar as configurações na classe startup no início do ConfigureServices:
+
+```c#
+ var tokenConfigurations = new TokenConfigurations();
+
+new ConfigureFromConfigurationOptions<TokenConfigurations> 
+    (Configuration.GetSection("TokenConfigurations"))
+    .Configure(tokenConfigurations);
+
+services.AddSingleton(tokenConfigurations);
+
+services.AddAuthentication(options => 
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true, 
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = tokenConfigurations.Issuer,
+        ValidAudience = tokenConfigurations.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenConfigurations.Secret))
+
+    };
+});
+
+services.AddAuthorization(auth =>
+{
+    auth.AddPolicy("Bearer", new AuthorizationPolicyBuilder()
+    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+    .RequireAuthenticatedUser().Build());
+});
+```
+
+14. Criar o Controller AuthController;
+15. Adicionar a Annotatation `[Authorize("Bearer")]` em BookController para exigir autenticação;
+
+> Refresh Token serve para se autenticar novamente sem enviar os dados de usuário e senha, para evitar ficar trafegando estas informações;
+>
+> Revoke Token é para revogar um token;
+
+----
+
+# Verbo Patch
+<br>
+
+O verbo Patch é utilizado para consumir menos recursos de banda, visto que ele não precisa trafegar todo o objeto.
+
+Nele é possível alterar apenas parte do objeto.
+
+Aqui foi implementado o atributo Enabled em Book.cs e utiliza-se o Patch para altera-lo para false através do método `Disabled()` criado em IBookRepository;
+
+----
+    
+
+
+
+
+
 
 
 
