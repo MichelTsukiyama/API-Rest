@@ -32,6 +32,17 @@ namespace RestWithASPNET.Controllers
             return Ok(_bookBusiness.FindAll());
         }
 
+        [HttpGet("{sortDirection}/{pageSize}/{page}")]
+        [ProducesResponseType((200), Type = typeof(List<BookVO>))]
+        [ProducesResponseType((204))]
+        [ProducesResponseType((400))]
+        [ProducesResponseType((401))]
+        [TypeFilter(typeof(HyperMediaFilter))]
+        public ActionResult Get([FromQuery]string author, string sortDirection, int pageSize, int page)
+        {
+            return Ok(_bookBusiness.FindWithPagedSearch(author, sortDirection, pageSize, page));
+        }
+
         [HttpGet("{id}")]
         [ProducesResponseType((200), Type = typeof(BookVO))]
         [ProducesResponseType((204))]
@@ -46,6 +57,17 @@ namespace RestWithASPNET.Controllers
                 return NotFound();
             
             return Ok(book);
+        }
+
+        [HttpGet("findByAuthorOrTitle")]
+        [ProducesResponseType((200), Type = typeof(List<BookVO>))]
+        [ProducesResponseType((204))]
+        [ProducesResponseType((400))]
+        [ProducesResponseType((401))]
+        [TypeFilter(typeof(HyperMediaFilter))]
+        public ActionResult Get([FromQuery]string author, [FromQuery]string title)
+        {
+            return Ok(_bookBusiness.FindByAuthorOrTitle(author, title));
         }
 
         [HttpPost]

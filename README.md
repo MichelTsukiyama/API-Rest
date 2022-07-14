@@ -35,10 +35,12 @@ Requisitos:
 - [18. HATEOAS (Hypermedia As the Engine Of Application State)](#18-hateoas-hypermedia-as-the-engine-of-application-state)
 - [19. Swagger (Open-Api)](#19-swagger-open-api)
   - [19.1. Importar para o Postman](#191-importar-para-o-postman)
-  - [Inserir Botão de Autenticação no Swagger](#inserir-botão-de-autenticação-no-swagger)
+  - [19.2. Inserir Botão de Autenticação no Swagger](#192-inserir-botão-de-autenticação-no-swagger)
 - [20. CORS (Cross-origin resource sharing)](#20-cors-cross-origin-resource-sharing)
-- [Autenticação](#autenticação)
-- [Verbo Patch](#verbo-patch)
+- [21. Autenticação](#21-autenticação)
+- [22. Verbo Patch](#22-verbo-patch)
+- [23. Query Params](#23-query-params)
+- [24. Paged Search](#24-paged-search)
 
 --------
 
@@ -457,7 +459,7 @@ Agora todas as rotas estarão no Postman;
 
 ----
 
-## Inserir Botão de Autenticação no Swagger
+## 19.2. Inserir Botão de Autenticação no Swagger
 <br>
 
 Adicione o código abaixo no `services.AddSwaggerGen()`, na classe Startup.cs para adicionar um botão de autenticação no Swagger. Assim é possível colocar o token e se autenticar para utilizar recursos que precisam de autenticação.
@@ -520,7 +522,7 @@ app.UseCors();
 
 ----
 
-# Autenticação
+# 21. Autenticação
 <br>
 
 Autenticação é a etapa que valida credenciais de um usuário para que API saiba se ele é cadastrado e quais endpoints pode acessar.
@@ -598,7 +600,7 @@ services.AddAuthorization(auth =>
 
 ----
 
-# Verbo Patch
+# 22. Verbo Patch
 <br>
 
 O verbo Patch é utilizado para consumir menos recursos de banda, visto que ele não precisa trafegar todo o objeto.
@@ -608,7 +610,48 @@ Nele é possível alterar apenas parte do objeto.
 Aqui foi implementado o atributo Enabled em Book.cs e utiliza-se o Patch para altera-lo para false através do método `Disabled()` criado em IBookRepository;
 
 ----
+
+# 23. Query Params
+<br>
+
+Query Params são atributos que podem ser passados na url, mas que não são obrigatórios.
+
+Ex.:  https://example.com/path/to/`page?name=ferret&color=purple` esta última parte é opcional.
+
+1. Adicionar um método List\<Book> em IBookRepository, para retornar os nomes procurados;
+2. Implementar o método em BookRepository;
+3. Fazer o mesmo para a camada Business;
+4. Criar o método com verbo GET no Controller;
+5. Exemplo de query params:
+
+```c#
+        [HttpGet("findByAuthorOrTitle")]
+        public ActionResult Get([FromQuery]string author, [FromQuery]string title){/*código*/ }
+```
+----
     
+# 24. Paged Search
+<br>
+
+Paged search é dividir os resultados de um requisição para não retornar jsons extensos, que podem resultar em uma resposta mais lenta, demora na renderização do frontend etc...
+
+
+**Suporte ao Paged Search no HATEOAS**
+
+1. Acrescentar PagedSearchVO.cs em Hypermedia/Utils;
+2. Alterar ContentResponseEnricher para receber um PagedSearchVO\<T>;
+
+**Suporte ao Paged Search em Book**
+
+1. Inserir os métodos `GetCount()` e `FindWithPagedSearch()` em IRepository;
+2. Implementar os métodos em GenericRepository;
+3. Fazer o mesmo na camada Business;
+4. Implementar uma rota para usar o método `FindWithPagedSearch()` na controller;
+
+-----
+
+
+
 
 
 
