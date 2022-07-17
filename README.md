@@ -41,6 +41,7 @@ Requisitos:
 - [22. Verbo Patch](#22-verbo-patch)
 - [23. Query Params](#23-query-params)
 - [24. Paged Search](#24-paged-search)
+- [Trabalhando com arquivos](#trabalhando-com-arquivos)
 
 --------
 
@@ -649,6 +650,28 @@ Paged search é dividir os resultados de um requisição para não retornar json
 4. Implementar uma rota para usar o método `FindWithPagedSearch()` na controller;
 
 -----
+
+# Trabalhando com arquivos
+<br>
+
+É comum trabalhar com diversos tipos de arquivos na internet como imagens, vídeos, aúdios, pdfs etc.
+Aqui será feito upload, upload múltiplo e download de arquivos.
+
+1. Criar o diretório UploadDir em RestWithASPNET;
+2. Criar FileDetailsVO em Data/VO;
+3. Criar a Interface IFileBusiness.cs e a classe FileBusinessImplementation em Business;
+4. Adicionar as injeções de dependência na classe Startup.cs, `services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();` e `services.AddScoped<IFileBusiness, FileBusinessImplementation>();`;
+5. Implementar a controller FileController;
+
+> Obs. No Swagger só funcionou ao usar return File(), no postman ele fez o download normalmente;
+>
+> Para salvar o arquivo utiliza-se o IFormFile, para retornar é necessária fazer um array de bytes[];
+>
+>Na aula ele utiliza `[FromForm]`, mas não deu certo comigo no Swagger. Deixei como parametro somente o IFormFile para fazer o upload dos arquivos;
+
+---------
+
+
 
 
 
